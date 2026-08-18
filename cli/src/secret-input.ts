@@ -1,14 +1,9 @@
 import { stdin, stdout } from 'node:process';
 
-const LEGACY_PRIVATE_STORAGE_PASSWORD = 'BugSeal-Level1-Storage-Password!';
-
 export const normalizeSensitiveInput = (value: string): string => value.trim();
 
 export const validatePrivateStoragePassword = (value: string): string => {
   const password = normalizeSensitiveInput(value);
-  if (password === LEGACY_PRIVATE_STORAGE_PASSWORD) {
-    throw new Error('Private-state password must not use the legacy default password');
-  }
   if (password.length < 16) {
     throw new Error('Private-state password must contain at least 16 characters');
   }
