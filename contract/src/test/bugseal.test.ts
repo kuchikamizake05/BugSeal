@@ -1,10 +1,17 @@
 import { expect, it } from 'vitest';
-import { ReportStatus } from '../managed/bugseal/contract/index.js';
+import { ReportStatus, type Ledger } from '../managed/bugseal/contract/index.js';
 import type { BugSealPrivateState } from '../witnesses.js';
 import { BugSealSimulator } from './bugseal-simulator.js';
-import { bytes, privateState } from './test-data.js';
+import { bytes, hex, privateState } from './test-data.js';
 
 const PROJECT_ID = bytes(10);
+
+const serializeLedger = (ledgerState: Ledger): string =>
+  JSON.stringify(ledgerState, (_key, value: unknown) => {
+    if (typeof value === 'bigint') return value.toString();
+    if (value instanceof Uint8Array) return hex(value);
+    return value;
+  });
 
 const submittedReport = (state: BugSealPrivateState) => {
   const simulator = new BugSealSimulator(state);
@@ -108,6 +115,35 @@ it('rejects a second acknowledgment', () => {
   expect(() => simulator.acknowledgeReport(reportId)).toThrow(
     'Report is not submitted',
   );
+});
+
+it('does not expose digest, salt, or maintainer secret in public ledger state', () => {
+  const state = privateState(41, 42, 43);
+  const { simulator } = submittedReport(state);
+  const publicLedger = serializeLedger(simulator.getLedger());
+  expect(publicLedger).not.toContain(hex(state.maintainerSecret));
+  expect(publicLedger).not.toContain(hex(state.reportSecret.digest));
+  expect(publicLedger).not.toContain(hex(state.reportSecret.salt));
+  expect(publicLedger).not.toContain('maintainerSecret');
+  expect(publicLedger).not.toContain('reportSecret');
+  expect(publicLedger).not.toContain('digest');
+  expect(publicLedger).not.toContain('salt');
+  expect(publicLedger).not.toContain('reporter');
+});
+
+it('rejects duplicate report commitments', () => {
+  const { simulator } = submittedReport(privateState(1, 2, 3));
+  expect(() => simulator.submitReport(PROJECT_ID)).toThrow('Report commitment already exists');
+});
+
+it('does not change private state during any Level 1 circuit', () => {
+  const state = privateState(1, 2, 3);
+  const simulator = new BugSealSimulator(state);
+  simulator.registerProject(PROJECT_ID);
+  const reportId = simulator.submitReport(PROJECT_ID);
+  simulator.proveReportOwnership(PROJECT_ID, reportId);
+  simulator.acknowledgeReport(reportId);
+  expect(simulator.getPrivateState()).toEqual(state);
 });
 
 
