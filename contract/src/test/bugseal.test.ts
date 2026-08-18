@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import { ReportStatus } from '../managed/bugseal/contract/index.js';
 import { BugSealSimulator } from './bugseal-simulator.js';
 import { bytes, privateState } from './test-data.js';
 
@@ -22,3 +23,36 @@ it('keeps the configured witness values in private state', () => {
   const simulator = new BugSealSimulator(state);
   expect(simulator.getPrivateState()).toEqual(state);
 });
+
+it('registers a public project with a witness-derived maintainer authority', () => {
+  const simulator = new BugSealSimulator(privateState(1, 2, 3));
+  const projectId = bytes(10);
+  simulator.registerProject(projectId);
+  expect(simulator.getLedger().projects.lookup(projectId)).toEqual(
+    simulator.deriveMaintainerAuthority(bytes(1)),
+  );
+});
+
+it('rejects duplicate project registration', () => {
+  const simulator = new BugSealSimulator(privateState(1, 2, 3));
+  const projectId = bytes(10);
+  simulator.registerProject(projectId);
+  expect(() => simulator.registerProject(projectId)).toThrow('Project already registered');
+});
+
+it('stores only the report commitment, project, and submitted status', () => {
+  const simulator = new BugSealSimulator(privateState(1, 2, 3));
+  const projectId = bytes(10);
+  simulator.registerProject(projectId);
+  const reportId = simulator.submitReport(projectId);
+  const record = simulator.getLedger().reports.lookup(reportId);
+  expect(record.projectId).toEqual(projectId);
+  expect(record.status).toEqual(ReportStatus.SUBMITTED);
+  expect(reportId).toEqual(simulator.reportCommitment(projectId, bytes(2), bytes(3)));
+});
+
+it('rejects reports for unregistered projects', () => {
+  const simulator = new BugSealSimulator(privateState(1, 2, 3));
+  expect(() => simulator.submitReport(bytes(10))).toThrow('Project is not registered');
+});
+

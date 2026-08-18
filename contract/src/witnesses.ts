@@ -1,5 +1,5 @@
 import type { WitnessContext } from '@midnight-ntwrk/compact-runtime';
-import type { ReportSecret } from './managed/bugseal/contract/index.js';
+import type { Ledger, ReportSecret, Witnesses } from './managed/bugseal/contract/index.js';
 
 export type BugSealPrivateState = {
   readonly maintainerSecret: Uint8Array;
@@ -15,16 +15,16 @@ export const createBugSealPrivateState = (
   reportSecret: { digest, salt },
 });
 
-export const witnesses = {
+export const witnesses: Witnesses<BugSealPrivateState> = {
   getMaintainerSecret: ({
     privateState,
-  }: WitnessContext<BugSealPrivateState>): [BugSealPrivateState, Uint8Array] => [
+  }: WitnessContext<Ledger, BugSealPrivateState>): [BugSealPrivateState, Uint8Array] => [
     privateState,
     privateState.maintainerSecret,
   ],
   getReportSecret: ({
     privateState,
-  }: WitnessContext<BugSealPrivateState>): [BugSealPrivateState, ReportSecret] => [
+  }: WitnessContext<Ledger, BugSealPrivateState>): [BugSealPrivateState, ReportSecret] => [
     privateState,
     privateState.reportSecret,
   ],

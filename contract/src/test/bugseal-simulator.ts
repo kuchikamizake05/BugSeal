@@ -61,4 +61,21 @@ export class BugSealSimulator {
   ): Uint8Array {
     return pureCircuits.reportCommitment(projectId, digest, salt);
   }
+
+  registerProject(projectId: Uint8Array): void {
+    const results = this.contract.impureCircuits.registerProject(
+      this.circuitContext,
+      projectId,
+    );
+    this.circuitContext = results.context;
+  }
+
+  submitReport(projectId: Uint8Array): Uint8Array {
+    const results = this.contract.impureCircuits.submitReport(
+      this.circuitContext,
+      projectId,
+    );
+    this.circuitContext = results.context;
+    return results.result;
+  }
 }

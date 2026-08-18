@@ -50,4 +50,26 @@ export pure circuit reportCommitment(
   ]) as ReportId;
 }
 
+export circuit registerProject(projectId: ProjectId): [] {
+  const publicProjectId = disclose(projectId);
+  assert(!projects.member(publicProjectId), "Project already registered");
+  const authority = deriveMaintainerAuthority(getMaintainerSecret());
+  projects.insert(publicProjectId, disclose(authority));
+}
+
+export circuit submitReport(projectId: ProjectId): ReportId {
+  const publicProjectId = disclose(projectId);
+  assert(projects.member(publicProjectId), "Project is not registered");
+  const secret = getReportSecret();
+  const reportId = reportCommitment(projectId, secret.digest, secret.salt);
+  const publicReportId = disclose(reportId);
+  assert(!reports.member(publicReportId), "Report commitment already exists");
+  const record = ReportRecord {
+    projectId: publicProjectId,
+    status: ReportStatus.SUBMITTED
+  };
+  reports.insert(publicReportId, disclose(record));
+  return publicReportId;
+}
+
 constructor() {}
