@@ -78,4 +78,22 @@ export class BugSealSimulator {
     this.circuitContext = results.context;
     return results.result;
   }
+
+  proveReportOwnership(projectId: Uint8Array, reportId: Uint8Array): void {
+    const results = this.contract.impureCircuits.proveReportOwnership(
+      this.circuitContext,
+      projectId,
+      reportId,
+    );
+    this.circuitContext = results.context;
+  }
+
+  acknowledgeReport(reportId: Uint8Array): Ledger {
+    const results = this.contract.impureCircuits.acknowledgeReport(
+      this.circuitContext,
+      reportId,
+    );
+    this.circuitContext = results.context;
+    return this.getLedger();
+  }
 }

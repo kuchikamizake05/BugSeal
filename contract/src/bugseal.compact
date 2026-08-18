@@ -72,4 +72,32 @@ export circuit submitReport(projectId: ProjectId): ReportId {
   return publicReportId;
 }
 
+export circuit proveReportOwnership(projectId: ProjectId, reportId: ReportId): [] {
+  const publicProjectId = disclose(projectId);
+  const publicReportId = disclose(reportId);
+  assert(reports.member(publicReportId), "Report does not exist");
+  const record = reports.lookup(publicReportId);
+  assert(record.projectId == publicProjectId, "Report belongs to another project");
+  const secret = getReportSecret();
+  const expected = reportCommitment(projectId, secret.digest, secret.salt);
+  assert(expected == reportId, "Private report does not match commitment");
+}
+
+export circuit acknowledgeReport(reportId: ReportId): [] {
+  const publicReportId = disclose(reportId);
+  assert(reports.member(publicReportId), "Report does not exist");
+  const record = reports.lookup(publicReportId);
+  assert(record.status == ReportStatus.SUBMITTED, "Report is not submitted");
+  const authority = projects.lookup(record.projectId);
+  assert(
+    authority == deriveMaintainerAuthority(getMaintainerSecret()),
+    "Only the registered maintainer can acknowledge"
+  );
+  const updated = ReportRecord {
+    projectId: record.projectId,
+    status: ReportStatus.ACKNOWLEDGED
+  };
+  reports.insert(publicReportId, disclose(updated));
+}
+
 constructor() {}

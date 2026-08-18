@@ -1,7 +1,17 @@
 import { expect, it } from 'vitest';
 import { ReportStatus } from '../managed/bugseal/contract/index.js';
+import type { BugSealPrivateState } from '../witnesses.js';
 import { BugSealSimulator } from './bugseal-simulator.js';
 import { bytes, privateState } from './test-data.js';
+
+const PROJECT_ID = bytes(10);
+
+const submittedReport = (state: BugSealPrivateState) => {
+  const simulator = new BugSealSimulator(state);
+  simulator.registerProject(PROJECT_ID);
+  const reportId = simulator.submitReport(PROJECT_ID);
+  return { simulator, reportId };
+};
 
 it('derives the same maintainer authority from the same secret', () => {
   const simulator = new BugSealSimulator(privateState(1, 2, 3));
@@ -55,4 +65,49 @@ it('rejects reports for unregistered projects', () => {
   const simulator = new BugSealSimulator(privateState(1, 2, 3));
   expect(() => simulator.submitReport(bytes(10))).toThrow('Project is not registered');
 });
+
+it('proves ownership with the original private digest and salt', () => {
+  const { simulator, reportId } = submittedReport(privateState(1, 2, 3));
+  expect(() => simulator.proveReportOwnership(PROJECT_ID, reportId)).not.toThrow();
+});
+
+it('rejects ownership with a different salt', () => {
+  const { simulator, reportId } = submittedReport(privateState(1, 2, 3));
+  simulator.setPrivateState(privateState(1, 2, 99));
+  expect(() => simulator.proveReportOwnership(PROJECT_ID, reportId)).toThrow(
+    'Private report does not match commitment',
+  );
+});
+
+it('rejects ownership under a different project', () => {
+  const { simulator, reportId } = submittedReport(privateState(1, 2, 3));
+  expect(() => simulator.proveReportOwnership(bytes(88), reportId)).toThrow(
+    'Report belongs to another project',
+  );
+});
+
+it('allows only the registered maintainer to acknowledge', () => {
+  const { simulator, reportId } = submittedReport(privateState(1, 2, 3));
+  simulator.acknowledgeReport(reportId);
+  expect(simulator.getLedger().reports.lookup(reportId).status).toEqual(
+    ReportStatus.ACKNOWLEDGED,
+  );
+});
+
+it('rejects acknowledgment by another maintainer secret', () => {
+  const { simulator, reportId } = submittedReport(privateState(1, 2, 3));
+  simulator.setPrivateState(privateState(77, 2, 3));
+  expect(() => simulator.acknowledgeReport(reportId)).toThrow(
+    'Only the registered maintainer can acknowledge',
+  );
+});
+
+it('rejects a second acknowledgment', () => {
+  const { simulator, reportId } = submittedReport(privateState(1, 2, 3));
+  simulator.acknowledgeReport(reportId);
+  expect(() => simulator.acknowledgeReport(reportId)).toThrow(
+    'Report is not submitted',
+  );
+});
+
 
