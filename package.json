@@ -7,14 +7,22 @@
     "node": ">=24.11.1"
   },
   "workspaces": [
-    "contract"
+    "contract",
+    "api",
+    "cli"
   ],
+  "resolutions": {
+    "@midnight-ntwrk/wallet-sdk": "1.2.0"
+  },
   "scripts": {
     "compact": "npm run compact --workspace @bugseal/contract",
-    "build": "npm run build --workspace @bugseal/contract",
-    "test": "npm run test --workspace @bugseal/contract",
-    "typecheck": "npm run typecheck --workspace @bugseal/contract",
-    "lint": "npm run lint --workspace @bugseal/contract",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "standalone": "npm run standalone --workspace @bugseal/cli",
+    "preview": "npm run preview --workspace @bugseal/cli",
+    "preprod": "npm run preprod --workspace @bugseal/cli",
     "ci": "npm run compact && npm run typecheck && npm run lint && npm run build && npm test"
   }
 }
