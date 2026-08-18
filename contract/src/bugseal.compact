@@ -1,0 +1,22 @@
+pragma language_version 0.23;
+
+import CompactStandardLibrary;
+
+export enum ReportStatus {
+  SUBMITTED,
+  ACKNOWLEDGED
+}
+
+export new type ProjectId = Bytes<32>;
+export new type ReportId = Bytes<32>;
+export new type MaintainerAuthority = Bytes<32>;
+
+export struct ReportRecord {
+  projectId: ProjectId;
+  status: ReportStatus;
+}
+
+export ledger projects: Map<ProjectId, MaintainerAuthority>;
+export ledger reports: Map<ReportId, ReportRecord>;
+
+constructor() {}
