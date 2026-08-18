@@ -9,7 +9,7 @@
     "build": "rm -rf dist && tsc --project tsconfig.build.json && mkdir -p dist/contract/src && cp -Rf ../contract/src/managed dist/contract/src/managed",
     "ci": "npm run typecheck && npm run lint && npm run build",
     "lint": "eslint \"src/**/*.{ts,js}\"",
-    "test": "vitest run",
+    "test": "vitest run src",
     "prepack": "npm run build",
     "standalone": "node --experimental-specifier-resolution=node --loader ts-node/esm src/launcher/standalone.ts",
     "preview": "node --experimental-specifier-resolution=node --loader ts-node/esm src/launcher/preview.ts",

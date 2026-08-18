@@ -35,7 +35,7 @@ export const currentDir = path.resolve(new URL(import.meta.url).pathname, '..');
 
 export class StandaloneConfig implements Config {
   getEnvironment(logger: Logger): TestEnvironment {
-    // @ts-ignore
+    // @ts-expect-error The Midnight testkit return type is broader than the runtime test environment.
     return getTestEnvironment(logger, path.resolve(currentDir, '..')) as TestEnvironment;
   }
   privateStateStoreName = 'bugseal-level1-private-state';
@@ -84,7 +84,6 @@ export class PreviewTestEnvironment extends RemoteTestEnvironment {
     };
   }
 
-  // @ts-ignore
   override start = async (): Promise<EnvironmentConfiguration> => {
     this.logger.info(`Starting preview test environment with local proof server... `);
     return this.getEnvironmentConfiguration();
@@ -109,7 +108,6 @@ export class PreprodTestEnvironment extends RemoteTestEnvironment {
     };
   }
 
-  // @ts-ignore
   override start = async (): Promise<EnvironmentConfiguration> => {
     this.logger.info(`Starting preprod test environment with local proof server... `);
     return this.getEnvironmentConfiguration();
