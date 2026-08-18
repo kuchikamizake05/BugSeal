@@ -67,6 +67,10 @@ npm test
 npm run ci
 ```
 
+Before running the CLI, set `BUGSEAL_PRIVATE_STORAGE_PASSWORD` to a unique secret of at least
+16 characters, or enter it via the CLI's hidden prompt. Never reuse the former Level 1 demo
+password and never commit this value.
+
 ## Local standalone demo
 
 Run local standalone environment using Docker proof server and node:

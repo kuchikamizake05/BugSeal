@@ -32,6 +32,7 @@ import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client
 import { type Logger } from 'pino';
 import { type Config, StandaloneConfig } from './config.js';
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
+import { getPrivateStoragePassword, promptForSensitiveInput } from './secret-input.js';
 import { type ContractAddress } from '@midnight-ntwrk/compact-runtime';
 import { assertIsContractAddress } from '@midnight-ntwrk/midnight-js-utils';
 import { TestEnvironment } from '@midnight-ntwrk/testkit-js';
@@ -164,7 +165,7 @@ const mainLoop = async (
         case '2': {
           const hexInput = await rli.question('Enter 32-byte Project ID (64 hex characters): ');
           const projectId = parseHex32(hexInput.trim());
-          const reportText = await rli.question('Enter vulnerability report details: ');
+          const reportText = await promptForSensitiveInput('Enter vulnerability report details: ');
           const receipt = await bugSealApi.submitReport(projectId, reportText);
           latestReceipt = receipt;
           console.log(`Report sealed and submitted successfully.`);
@@ -233,8 +234,7 @@ const buildWallet = async (
       case '1':
         return randomBytes(32).toString('hex');
       case '2': {
-        const seed = await rli.question('Enter your wallet seed: ');
-        return seed.trim();
+        return promptForSensitiveInput('Enter your wallet seed: ');
       }
       case '3':
         logger.info('Exiting...');
@@ -259,6 +259,7 @@ export const run = async (
     if (seed === undefined) {
       return;
     }
+    const privateStoragePassword = await getPrivateStoragePassword();
     const walletProvider = await MidnightWalletProvider.build(logger, envConfiguration, seed);
     providersToBeStopped.push(walletProvider);
     const walletFacade: WalletFacade = walletProvider.wallet;
@@ -293,9 +294,7 @@ export const run = async (
       privateStateProvider: levelPrivateStateProvider<PrivateStateId, BugSealPrivateState>({
         privateStateStoreName: config.privateStateStoreName,
         signingKeyStoreName: `${config.privateStateStoreName}-signing-keys`,
-        privateStoragePasswordProvider: () => {
-          return 'BugSeal-Level1-Storage-Password!';
-        },
+        privateStoragePasswordProvider: () => privateStoragePassword,
         accountId: seed,
       }),
       publicDataProvider: indexerPublicDataProvider(
