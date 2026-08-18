@@ -10,7 +10,7 @@ export const CompiledBugSealContract = CompiledContract.make<
   'BugSeal',
   CompiledBugSeal.Contract,
 ).pipe(
-  CompiledContract.withVacantWitnesses,
+  CompiledContract.withWitnesses(Witnesses.witnesses),
   CompiledContract.withCompiledFileAssets('./managed/bugseal'),
 );
 

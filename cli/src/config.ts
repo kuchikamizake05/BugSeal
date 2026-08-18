@@ -35,7 +35,8 @@ export const currentDir = path.resolve(new URL(import.meta.url).pathname, '..');
 
 export class StandaloneConfig implements Config {
   getEnvironment(logger: Logger): TestEnvironment {
-    return getTestEnvironment(logger) as TestEnvironment;
+    // @ts-ignore
+    return getTestEnvironment(logger, path.resolve(currentDir, '..')) as TestEnvironment;
   }
   privateStateStoreName = 'bugseal-level1-private-state';
   logDir = path.resolve(currentDir, '..', 'logs', 'standalone', `${new Date().toISOString()}.log`);
@@ -70,14 +71,6 @@ export class PreviewTestEnvironment extends RemoteTestEnvironment {
     super(logger);
   }
 
-  private getProofServerUrl(): string {
-    const container = this.proofServerContainer as { getUrl(): string } | undefined;
-    if (!container) {
-      throw new Error('Proof server container is not available.');
-    }
-    return container.getUrl();
-  }
-
   getEnvironmentConfiguration(): EnvironmentConfiguration {
     return {
       walletNetworkId: 'preview',
@@ -87,22 +80,20 @@ export class PreviewTestEnvironment extends RemoteTestEnvironment {
       node: 'https://rpc.preview.midnight.network',
       nodeWS: 'wss://rpc.preview.midnight.network',
       faucet: 'https://midnight-tmnight-preview.nethermind.dev/',
-      proofServer: this.getProofServerUrl(),
+      proofServer: 'http://127.0.0.1:6300',
     };
   }
+
+  // @ts-ignore
+  override start = async (): Promise<EnvironmentConfiguration> => {
+    this.logger.info(`Starting preview test environment with local proof server... `);
+    return this.getEnvironmentConfiguration();
+  };
 }
 
 export class PreprodTestEnvironment extends RemoteTestEnvironment {
   constructor(logger: Logger) {
     super(logger);
-  }
-
-  private getProofServerUrl(): string {
-    const container = this.proofServerContainer as { getUrl(): string } | undefined;
-    if (!container) {
-      throw new Error('Proof server container is not available.');
-    }
-    return container.getUrl();
   }
 
   getEnvironmentConfiguration(): EnvironmentConfiguration {
@@ -114,7 +105,13 @@ export class PreprodTestEnvironment extends RemoteTestEnvironment {
       node: 'https://rpc.preprod.midnight.network',
       nodeWS: 'wss://rpc.preprod.midnight.network',
       faucet: 'https://midnight-tmnight-preprod.nethermind.dev/',
-      proofServer: this.getProofServerUrl(),
+      proofServer: 'http://127.0.0.1:6300',
     };
   }
+
+  // @ts-ignore
+  override start = async (): Promise<EnvironmentConfiguration> => {
+    this.logger.info(`Starting preprod test environment with local proof server... `);
+    return this.getEnvironmentConfiguration();
+  };
 }

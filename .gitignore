@@ -9,3 +9,6 @@ private-state-*/
 *.secret
 contract/src/managed/
 docs/evidence/private/
+logs/
+cli/logs/
+midnight-level-db/
