@@ -13,46 +13,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import eslint from "@eslint/js";
+import js from "@eslint/js";
 import tseslint from "typescript-eslint";
-import eslintConfigPrettier from "eslint-config-prettier";
+import prettier from "eslint-config-prettier";
 import globals from "globals";
 
-const config = tseslint.config(
+export default tseslint.config(
   {
     ignores: ["eslint.config.mjs", "src/managed/", "dist/", "js-resolver.cjs"],
   },
-  eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  eslintConfigPrettier,
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  prettier,
   {
-    ignores: ["src/managed", "dist"],
-    rules: {
-      "@typescript-eslint/no-misused-promises": "off",
-      "@typescript-eslint/no-floating-promises": "warn",
-      "@typescript-eslint/promise-function-async": "off",
-      "@typescript-eslint/no-redeclare": "off",
-      "@typescript-eslint/consistent-type-definitions": "off",
-      "@typescript-eslint/explicit-function-return-type": "off",
-      "@typescript-eslint/no-unsafe-call": "warn",
-      "@typescript-eslint/no-unsafe-return": "warn",
-      "@typescript-eslint/no-unsafe-assignment": "warn",
-      "@typescript-eslint/no-unsafe-member-access": "warn",
-      "@typescript-eslint/no-unsafe-argument": "warn",
-    },
     languageOptions: {
       globals: {
         ...globals.browser,
         ...globals.node,
       },
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
+    },
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
     },
   },
 );
-
-export default config;

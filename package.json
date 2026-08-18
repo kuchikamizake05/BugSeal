@@ -24,5 +24,10 @@
     "preview": "npm run preview --workspace @bugseal/cli",
     "preprod": "npm run preprod --workspace @bugseal/cli",
     "ci": "npm run compact && npm run typecheck && npm run lint && npm run build && npm test"
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "typescript-eslint": "^8.67.0"
   }
 }
