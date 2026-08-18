@@ -19,4 +19,35 @@ export struct ReportRecord {
 export ledger projects: Map<ProjectId, MaintainerAuthority>;
 export ledger reports: Map<ReportId, ReportRecord>;
 
+export new type ReportDigest = Bytes<32>;
+export new type ReportSalt = Bytes<32>;
+
+export struct ReportSecret {
+  digest: ReportDigest;
+  salt: ReportSalt;
+}
+
+witness getMaintainerSecret(): Bytes<32>;
+witness getReportSecret(): ReportSecret;
+
+export pure circuit deriveMaintainerAuthority(secret: Bytes<32>): MaintainerAuthority {
+  return persistentHash<Vector<2, Bytes<32>>>([
+    pad(32, "bugseal:maintainer:v1"),
+    secret
+  ]) as MaintainerAuthority;
+}
+
+export pure circuit reportCommitment(
+  projectId: ProjectId,
+  digest: ReportDigest,
+  salt: ReportSalt
+): ReportId {
+  return persistentHash<Vector<4, Bytes<32>>>([
+    pad(32, "bugseal:report:v1"),
+    projectId as Bytes<32>,
+    digest as Bytes<32>,
+    salt as Bytes<32>
+  ]) as ReportId;
+}
+
 constructor() {}
