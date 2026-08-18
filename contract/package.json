@@ -10,7 +10,7 @@
     "build": "rm -rf dist && tsc --project tsconfig.build.json && cp -Rf ./src/managed ./dist/managed && cp ./src/bugseal.compact ./dist",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint src",
+    "lint": "eslint \"src/**/*.{ts,js}\"",
     "ci": "npm run compact && npm run typecheck && npm run lint && npm run build && npm test"
   },
   "dependencies": {
